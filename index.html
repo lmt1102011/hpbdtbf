@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Ngân Hà Của Em</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100;300;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --space-bg: #010208;
+            --gold: #e2c08d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--space-bg);
+            color: #fff;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #canvasContainer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        /* Màn hình chờ */
+        #introOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--space-bg);
+            z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: opacity 1.5s ease;
+        }
+
+        .singularity {
+            width: 4px; height: 4px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 20px 5px #fff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            50% { transform: scale(2); box-shadow: 0 0 30px 10px #fff; }
+        }
+
+        /* Thẻ thông điệp - Hiệu ứng chuyển từ trong suốt sang đục */
+        #mainUI {
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 3s ease, transform 3s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 90%; max-width: 500px;
+        }
+
+        .luxury-card {
+            padding: 50px 30px;
+            border-radius: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            /* Ban đầu trong suốt */
+            background: rgba(255, 255, 255, 0);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            /* Animation làm đục dần nền */
+            animation: solidify 8s forwards;
+            animation-delay: 2s;
+        }
+
+        @keyframes solidify {
+            to {
+                background: rgba(10, 15, 30, 0.7);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border-color: rgba(226, 192, 141, 0.2);
+            }
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .message {
+            font-size: clamp(0.95rem, 3vw, 1.1rem);
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        .gold-text { color: var(--gold); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div id="introOverlay" onclick="ignite()">
+        <div class="singularity"></div>
+        <p style="margin-top: 20px; font-size: 10px; letter-spacing: 4px; opacity: 0.5;">CHẠM ĐỂ KHỞI TẠO</p>
+    </div>
+
+    <div id="canvasContainer">
+        <canvas id="cosmicCanvas"></canvas>
+    </div>
+
+    <div id="mainUI">
+        <div class="luxury-card">
+            <h1 class="title">Thương Gửi Em</h1>
+            <p class="message">
+                Vào khoảnh khắc tuyệt diệu này, cả <span class="gold-text">Vũ Trụ</span> dường như ngừng xoay để chúc mừng ngày thiên thần của anh hạ giới.<br><br>
+                Chúc em một tuổi mới rực rỡ như dải <span class="gold-text">Ngân Hà</span>, luôn bình yên giữa những tinh vân lãng mạn. Dù vạn vật có đổi thay, em vẫn luôn là tâm điểm hoàn mỹ nhất trong thế giới của anh.<br><br>
+                <i>Chúc mừng sinh nhật, tình yêu!</i>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('cosmicCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [], particles = [], galaxies = [], rotation = 0;
+        let active = false;
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Khởi tạo sao tĩnh
+            stars = [];
+            for (let i = 0; i < 300; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    s: Math.random() * 1.2,
+                    o: Math.random()
+                });
+            }
+
+            // Khởi tạo các cụm thiên hà mờ ảo (Nebula)
+            galaxies = [
+                { x: width * 0.3, y: height * 0.4, r: width * 0.5, c: 'rgba(30, 40, 100, 0.2)' },
+                { x: width * 0.7, y: height * 0.6, r: width * 0.4, c: 'rgba(60, 20, 80, 0.15)' },
+                { x: width * 0.5, y: height * 0.5, r: width * 0.8, c: 'rgba(10, 50, 70, 0.1)' }
+            ];
+        }
+
+        class Spark {
+            constructor() {
+                this.x = width / 2;
+                this.y = height / 2;
+                const angle = Math.random() * Math.PI * 2;
+                const force = Math.random() * 8 + 2;
+                this.vx = Math.cos(angle) * force;
+                this.vy = Math.sin(angle) * force;
+                this.life = 1;
+                this.decay = Math.random() * 0.01 + 0.005;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = "#fff";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function ignite() {
+            if (active) return;
+            active = true;
+            document.getElementById('introOverlay').style.opacity = '0';
+            
+            for (let i = 0; i < 250; i++) particles.push(new Spark());
+
+            setTimeout(() => {
+                document.getElementById('introOverlay').remove();
+                document.getElementById('mainUI').style.opacity = '1';
+                document.getElementById('mainUI').style.transform = 'translateY(0)';
+            }, 1000);
+        }
+
+        function draw() {
+            // Nền không gian sâu
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#010208';
+            ctx.fillRect(0, 0, width, height);
+
+            // Vẽ Thiên hà chuyển động (Nebula)
+            rotation += 0.001;
+            ctx.save();
+            ctx.translate(width/2, height/2);
+            ctx.rotate(rotation);
+            ctx.translate(-width/2, -height/2);
+            
+            galaxies.forEach(g => {
+                const grad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
+                grad.addColorStop(0, g.c);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, width, height);
+            });
+            ctx.restore();
+
+            // Vẽ sao
+            ctx.fillStyle = "#fff";
+            stars.forEach(s => {
+                const twinkle = Math.sin(Date.now() * 0.001 + s.x) * 0.5 + 0.5;
+                ctx.globalAlpha = s.o * twinkle;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.s, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Vẽ Big Bang
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        draw();
+    </script>
+</body>
+</html>
