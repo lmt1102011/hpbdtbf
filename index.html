@@ -2,243 +2,1220 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Ngân Hà Của Em</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100;300;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Sinh Nhật</title>
     
+    <!-- Premium Fonts (added Noto Serif/Sans with vietnamese subset + keep display=swap) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;600;700&family=Montserrat:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Serif:wght@400;600&family=Noto+Sans:wght@200;300;400;500;600&display=swap&subset=vietnamese" rel="stylesheet">
+
     <style>
+        /* ==========================================================================
+           1. CSS VARIABLES & RESET
+           ========================================================================== */
         :root {
-            --space-bg: #010208;
-            --gold: #e2c08d;
+            --bg-color: #050505;
+            --text-main: #F5F5F5;
+            --gold-light: #FFF0A8;
+            --gold-mid: #D4AF37;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            --glass-bg: rgba(255, 215, 0, 0.03);
+            --glass-border: rgba(255, 215, 0, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            
+            /* Updated font stacks with Noto fallbacks for Vietnamese glyph support */
+            --font-serif: 'Playfair Display', 'Noto Serif', serif;
+            --font-sans: 'Montserrat', 'Noto Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-cinematic: 'Cinzel', 'Noto Serif', serif;
+            --font-handwriting: 'Alex Brush', "Segoe Script", 'Noto Sans', cursive;
+
+            --ease-cinematic: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: var(--space-bg);
-            color: #fff;
-            font-family: 'Be Vietnam Pro', sans-serif;
-            overflow: hidden;
-            width: 100vw; height: 100vh;
-            display: flex; justify-content: center; align-items: center;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            overflow: hidden; /* Locked until intro finishes */
+            -webkit-font-smoothing: antialiased;
+            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
+            width: 100%;
         }
 
-        #canvasContainer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.6);
         }
 
-        /* Màn hình chờ */
-        #introOverlay {
+        /* ==========================================================================
+           2. GLOBAL ELEMENTS
+           ========================================================================== */
+        #particles-canvas {
             position: fixed;
-            inset: 0;
-            background: var(--space-bg);
-            z-index: 100;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--gold-gradient);
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            opacity: 0; /* Hidden during intro */
+        }
+
+        .music-toggle {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--gold-mid);
             cursor: pointer;
-            transition: opacity 1.5s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s var(--ease-cinematic);
+            opacity: 0;
+            transform: scale(0.8);
         }
 
-        .singularity {
-            width: 4px; height: 4px; background: #fff; border-radius: 50%;
-            box-shadow: 0 0 20px 5px #fff;
-            animation: pulse 2s infinite;
+        .music-toggle:hover {
+            transform: scale(1.1);
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
         }
 
-        @keyframes pulse {
-            50% { transform: scale(2); box-shadow: 0 0 30px 10px #fff; }
+        /* ==========================================================================
+           3. CINEMATIC INTRO (SCENE 1 & 2)
+           ========================================================================== */
+        #cinematic-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-color);
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            transition: opacity 2s var(--ease-cinematic);
         }
 
-        /* Thẻ thông điệp - Hiệu ứng chuyển từ trong suốt sang đục */
-        #mainUI {
+        .intro-text {
+            font-family: var(--font-serif);
+            font-size: clamp(1.1rem, 4vw, 2rem);
+            font-weight: 300;
+            letter-spacing: 2px;
+            opacity: 0;
+            position: absolute;
+            width: 85%;
+            max-width: 800px;
+            line-height: 1.8;
+            transform: translateY(20px);
+            transition: all 2s var(--ease-cinematic);
+        }
+
+        .intro-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .intro-text.fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+            filter: blur(5px);
+        }
+
+        .friend-name-highlight {
+            font-family: var(--font-cinematic);
+            font-size: clamp(1.8rem, 6vw, 4rem);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(212, 175, 55, 0.35);
+            display: block;
+            margin-top: 20px;
+            letter-spacing: 5px;
+            font-weight: 700;
+        }
+
+        /* Start Experience Button */
+        #start-btn {
+            padding: 16px 45px;
+            font-family: var(--font-sans);
+            letter-spacing: 3px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background: rgba(212, 175, 55, 0.03);
+            color: var(--text-main);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 901;
+            text-transform: uppercase;
+        }
+
+        #start-btn:hover {
+            border-color: var(--gold-mid);
+            color: var(--gold-mid);
+            background: rgba(212, 175, 55, 0.08);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.25);
+        }
+
+        /* ==========================================================================
+           4. MAIN CONTENT & SCENE 3 (GRAND REVEAL)
+           ========================================================================== */
+        #main-content {
             position: relative;
             z-index: 10;
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 3s ease, transform 3s cubic-bezier(0.16, 1, 0.3, 1);
-            width: 90%; max-width: 500px;
+            pointer-events: none;
+            transition: opacity 3s ease;
+            width: 100%;
         }
 
-        .luxury-card {
-            padding: 50px 30px;
-            border-radius: 30px;
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 60px 20px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .hero-reveal {
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            /* Ban đầu trong suốt */
-            background: rgba(255, 255, 255, 0);
-            backdrop-filter: blur(0px);
-            -webkit-backdrop-filter: blur(0px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            /* Animation làm đục dần nền */
-            animation: solidify 8s forwards;
-            animation-delay: 2s;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-width: 1200px;
+            width: 100%;
         }
 
-        @keyframes solidify {
-            to {
-                background: rgba(10, 15, 30, 0.7);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
-                border-color: rgba(226, 192, 141, 0.2);
+        .hero-reveal.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .title-main {
+            font-family: var(--font-cinematic);
+            font-size: clamp(2.5rem, 8vw, 7.5rem);
+            font-weight: 700;
+            letter-spacing: clamp(4px, 2.5vw, 15px);
+            margin-bottom: 20px;
+            background: var(--gold-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 5s linear infinite;
+            filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.3));
+            line-height: 1.2;
+        }
+
+        .title-sub {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: clamp(1.3rem, 4vw, 3rem);
+            color: var(--text-main);
+            letter-spacing: 5px;
+            opacity: 0.9;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--gold-mid);
+            opacity: 0;
+            transition: opacity 1s var(--ease-cinematic);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .scroll-indicator.active {
+            opacity: 0.8;
+            animation: bounce 2s infinite var(--ease-cinematic);
+        }
+
+        .scroll-indicator.hidden {
+            opacity: 0 !important;
+        }
+
+        .scroll-indicator span {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
             }
         }
 
-        .title {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
-            color: var(--gold);
-            margin-bottom: 20px;
-            font-style: italic;
+        /* ==========================================================================
+           5. THINGS I WANT TO TELL YOU (CARDS)
+           ========================================================================== */
+        .section-title {
+            font-family: var(--font-cinematic);
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            color: var(--gold-mid);
+            margin-bottom: 50px;
+            text-align: center;
+            letter-spacing: 4px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s var(--ease-cinematic);
+            width: 100%;
         }
 
-        .message {
-            font-size: clamp(0.95rem, 3vw, 1.1rem);
+        .cards-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .glass-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 360px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s var(--ease-cinematic);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.7s ease;
+        }
+
+        .glass-card:hover::before {
+            left: 150%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px) !important;
+            border-color: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-title {
+            font-family: var(--font-serif);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        .card-text {
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
             line-height: 1.8;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255,255,255,0.7);
             font-weight: 300;
         }
 
-        .gold-text { color: var(--gold); font-weight: 600; }
+        /* ==========================================================================
+           6. SECRET LETTER SECTION (RE-STRUCTURED FOR NO OVERFLOW)
+           ========================================================================== */
+        #letter-wrapper {
+            perspective: 1000px;
+        }
+
+        .envelope-container {
+            position: relative;
+            width: min(90vw, 420px);
+            height: min(60vw, 260px);
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 1s var(--ease-cinematic);
+            margin: 0 auto;
+        }
+
+        .envelope-container:hover {
+            transform: scale(0.95) translateY(-5px) !important;
+        }
+
+        .env-back {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #111;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* The small preview paper inside the envelope */
+        .env-paper-preview {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            background: #fffcf2;
+            border-radius: 4px;
+            z-index: 1;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .env-paper-preview::after {
+            content: '✉';
+            font-size: 2rem;
+            color: #AA771C;
+            opacity: 0.5;
+        }
+
+        /* -------------------------------------------------------------
+           NEW: Reliable Clip-Path Envelope Structure (Fixes All Bugs)
+           ------------------------------------------------------------- */
+        .env-front {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .env-left {
+            background: #181818;
+            -webkit-clip-path: polygon(0 0, 50% 50%, 0 100%);
+            clip-path: polygon(0 0, 50% 50%, 0 100%);
+        }
+
+        .env-right {
+            background: #1a1a1a;
+            -webkit-clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+            clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+        }
+
+        .env-bottom {
+            background: #131313;
+            -webkit-clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+            clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+        }
+
+        .env-flap {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #222;
+            -webkit-clip-path: polygon(0 0, 100% 0, 50% 55%);
+            clip-path: polygon(0 0, 100% 0, 50% 55%);
+            z-index: 3;
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .envelope-text {
+            position: absolute;
+            top: 55%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+            font-family: var(--font-cinematic);
+            color: var(--gold-mid);
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            font-weight: 600;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Animation Classes */
+        .envelope-container.is-open .env-flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        .envelope-container.is-open .env-paper-preview {
+            transform: translateY(-50%);
+        }
+
+        .envelope-container.is-open.closing .env-paper-preview {
+            transform: translateY(0);
+        }
+
+        .envelope-container.closing .env-paper-preview {
+            transform: translateY(0);
+        }
+
+        /* NEW IMMERSIVE LUXURY MODAL (Resolves all overflow bugs) */
+        .letter-modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s var(--ease-cinematic);
+            padding: 20px;
+        }
+
+        .letter-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .letter-modal-body {
+            background: #fffdf5; /* Warm premium parchment paper */
+            color: #1a1a1a;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.15);
+            padding: 45px min(10vw, 50px);
+            position: relative;
+            overflow-y: auto;
+            transform: translateY(40px) scale(0.95);
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .letter-modal-overlay.show .letter-modal-body {
+            transform: translateY(0) scale(1);
+        }
+
+        .letter-close-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #555;
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .letter-close-btn:hover {
+            background: rgba(0, 0, 0, 0.15);
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        .letter-content {
+            font-family: var(--font-handwriting);
+            font-size: clamp(1.4rem, 4vw, 2.1rem);
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 1s ease 0.5s, transform 1s ease 0.5s;
+            text-align: center;
+        }
+
+        .letter-modal-overlay.show .letter-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ==========================================================================
+           7. FINAL SCENE
+           ========================================================================== */
+        #finale-section {
+            text-align: center;
+            width: 100%;
+        }
+
+        .finale-text {
+            font-family: var(--font-serif);
+            font-size: clamp(1.3rem, 4vw, 2.2rem);
+            font-weight: 300;
+            letter-spacing: 2px;
+            opacity: 0;
+            position: absolute;
+            transition: all 2s var(--ease-cinematic);
+            transform: scale(0.95);
+            width: 90%;
+            max-width: 800px;
+            line-height: 1.8;
+        }
+
+        .finale-text.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .finale-grand {
+            font-family: var(--font-cinematic);
+            font-size: clamp(2rem, 6vw, 4.5rem);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 8px;
+            font-weight: 700;
+            text-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 4s cubic-bezier(0.1, 1, 0.2, 1);
+            position: absolute;
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        .finale-grand.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ==========================================================================
+           8. UTILITIES & ANIMATIONS
+           ========================================================================== */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s var(--ease-cinematic), transform 1s var(--ease-cinematic);
+        }
+
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .delay-1 { transition-delay: 0.15s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.45s; }
+        
+        .overlay-dark {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--bg-color));
+            pointer-events: none;
+            z-index: 1;
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="introOverlay" onclick="ignite()">
-        <div class="singularity"></div>
-        <p style="margin-top: 20px; font-size: 10px; letter-spacing: 4px; opacity: 0.5;">CHẠM ĐỂ KHỞI TẠO</p>
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scroll-progress"></div>
+
+    <!-- Music Toggle -->
+    <button class="music-toggle" id="music-toggle" title="Bật/Tắt nhạc">
+        <svg id="music-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Muted State -->
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+    </button>
+    
+    <!-- Audio Element -->
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/audio/2022/11/22/audio_19b139527f.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Particle Canvas Background -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- CINEMATIC INTRO OVERLAY -->
+    <div id="cinematic-overlay">
+        <!-- Play Button Context for Audio API -->
+        <button id="start-btn">Bắt Đầu Trải Nghiệm</button>
+
+        <p class="intro-text" id="intro-1">Có những người chỉ đơn giản lướt qua cuộc đời chúng ta...</p>
+        <p class="intro-text" id="intro-2">Nhưng cũng có những người...</p>
+        <p class="intro-text" id="intro-3">Trở thành một phần ký ức tươi đẹp nhất.</p>
+        
+        <p class="intro-text" id="intro-4">Hôm nay là một ngày vô cùng đặc biệt.</p>
+        <p class="intro-text" id="intro-5">Bởi vì...</p>
+        <div class="intro-text" id="intro-6">
+            <span class="friend-name-highlight insert-name"></span>
+        </div>
+        <p class="intro-text" id="intro-7">Đã được sinh ra vào ngày này.</p>
     </div>
 
-    <div id="canvasContainer">
-        <canvas id="cosmicCanvas"></canvas>
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <div id="main-content">
+        
+        <!-- SCENE 3: GRAND REVEAL -->
+        <section id="reveal-section">
+            <div class="hero-reveal" id="hero-reveal">
+                <h1 class="title-main">HAPPY BIRTHDAY</h1>
+                <h2 class="title-sub insert-name"></h2>
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <div class="scroll-indicator" id="scroll-indicator">
+                <span>Lướt xuống</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <div class="overlay-dark" style="top: auto; bottom: 0; height: 30%;"></div>
+        </section>
+
+        <!-- SECTION: THINGS I WANT TO TELL YOU -->
+        <section id="cards-section">
+            <h3 class="section-title reveal-on-scroll">Những Điều Mình Muốn Nói</h3>
+            
+            <div class="cards-container">
+                <div class="glass-card reveal-on-scroll delay-1">
+                    <div class="card-icon">✦</div>
+                    <h4 class="card-title">Điều Mình Trân Trọng</h4>
+                    <p class="card-text">Sự hiện diện của bạn, cách bạn mang năng lượng tích cực đến mọi người. Sự chân thành lắng nghe, thấu hiểu và chỗ dựa tinh thần vô điều kiện khi mình cần nhất.</p>
+                </div>
+                
+                <div class="glass-card reveal-on-scroll delay-2">
+                    <div class="card-icon">✧</div>
+                    <h4 class="card-title">Cảm Ơn Bạn Vì</h4>
+                    <p class="card-text">Từng cuộc trò chuyện thâu đêm, từng tràng cười thoải mái và những khoảnh khắc quý giá mà ta đã cùng đi qua. Cảm ơn vì đã luôn là chính bạn.</p>
+                </div>
+                
+                <div class="glass-card reveal-on-scroll delay-3">
+                    <div class="card-icon">⋆</div>
+                    <h4 class="card-title">Ước Nguyện Tương Lai</h4>
+                    <p class="card-text">Chúc bạn luôn vững tin trên con đường phía trước. Mong rằng hạnh phúc, thành công và sự bình yên sẽ mãi ôm lấy hành trình của cuộc đời bạn.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SECRET LETTER -->
+        <section id="letter-wrapper">
+            <h3 class="section-title reveal-on-scroll" style="margin-bottom: 10px;">Thư Gửi Cho Bạn</h3>
+            <p style="text-align: center; color: rgba(255,255,255,0.5); margin-bottom: 50px; font-style: italic; font-family: var(--font-serif);" class="reveal-on-scroll">(Chạm vào phong bì để mở)</p>
+            
+            <div class="envelope-container reveal-on-scroll delay-1" id="envelope">
+                <div class="env-back"></div>
+                <div class="env-paper-preview"></div>
+                <!-- 3 mảnh ghép mặt trước dùng clip-path để không bị vỡ -->
+                <div class="env-front env-left"></div>
+                <div class="env-front env-right"></div>
+                <div class="env-front env-bottom"></div>
+                <div class="env-flap"></div>
+                <div class="envelope-text">Gửi bạn</div>
+            </div>
+        </section>
+
+        <!-- FINAL SCENE -->
+        <section id="finale-section">
+            <p class="finale-text" id="fin-1">Cảm ơn bạn vì đã trở thành một phần trong cuộc đời mình.</p>
+            <p class="finale-text" id="fin-2">Chúc Mừng Sinh Nhật nhé.</p>
+            <p class="finale-text" id="fin-3">Mong hạnh phúc luôn tìm thấy bạn.</p>
+            <div class="finale-grand" id="fin-4">✨ FOREVER FRIENDS ✨</div>
+        </section>
+
     </div>
 
-    <div id="mainUI">
-        <div class="luxury-card">
-            <h1 class="title">Thương Gửi Em</h1>
-            <p class="message">
-                Vào khoảnh khắc tuyệt diệu này, cả <span class="gold-text">Vũ Trụ</span> dường như ngừng xoay để chúc mừng ngày thiên thần của anh hạ giới.<br><br>
-                Chúc em một tuổi mới rực rỡ như dải <span class="gold-text">Ngân Hà</span>, luôn bình yên giữa những tinh vân lãng mạn. Dù vạn vật có đổi thay, em vẫn luôn là tâm điểm hoàn mỹ nhất trong thế giới của anh.<br><br>
-                <i>Chúc mừng sinh nhật, tình yêu!</i>
-            </p>
+    <!-- SECRET LETTER FULLSCREEN MODAL (Fixed Overflow Completely) -->
+    <div class="letter-modal-overlay" id="letter-modal">
+        <div class="letter-modal-body">
+            <button class="letter-close-btn" id="close-letter-btn">Đóng thư</button>
+            <div class="letter-content">
+                Chúc mừng sinh nhật.<br><br>
+                Cảm ơn bạn vì tất cả những kỷ niệm đẹp, tất cả những tiếng cười, và tất cả những khoảnh khắc tuyệt vời mà chúng ta đã sẻ chia.<br><br>
+                Chúc cho tuổi mới này của bạn sẽ ngập tràn niềm vui, thành công, bình yên và vô vàn ký ức đáng nhớ.<br><br>
+                Dù cuộc sống có mang ta đến bất cứ nơi nào, hy vọng chúng mình sẽ mãi là những người bạn tốt nhất của nhau.<br><br>
+                Hôm nay là ngày của riêng bạn.<br>
+                Hãy tận hưởng trọn vẹn từng khoảnh khắc nhé.<br><br>
+                Happy Birthday!
+            </div>
         </div>
     </div>
 
+    <!-- ==========================================================================
+         JAVASCRIPT LOGIC
+         ========================================================================== -->
     <script>
-        const canvas = document.getElementById('cosmicCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, stars = [], particles = [], galaxies = [], rotation = 0;
-        let active = false;
+        /* ------------------------------------------------------------------------
+           CONFIGURATION
+           Nhập tên bạn của bạn tại đây để cá nhân hóa trang web!
+        ------------------------------------------------------------------------ */
+        const FRIEND_NAME = "Kỳ Thiên"; 
 
-        function init() {
+        // Inject the name into the HTML elements
+        document.querySelectorAll('.insert-name').forEach(el => {
+            el.innerText = FRIEND_NAME;
+        });
+
+        /* ------------------------------------------------------------------------
+           UTILITIES & TIMING
+        ------------------------------------------------------------------------ */
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        /* ------------------------------------------------------------------------
+           AUDIO CONTROLS
+        ------------------------------------------------------------------------ */
+        const musicBtn = document.getElementById('music-toggle');
+        const bgMusic = document.getElementById('bg-music');
+        const musicIcon = document.getElementById('music-icon');
+        let isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                bgMusic.pause();
+                // Show muted icon
+                musicIcon.innerHTML = `
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                `;
+            } else {
+                bgMusic.play().catch(e => console.log("Audio play blocked by browser."));
+                // Show playing icon
+                musicIcon.innerHTML = `
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                `;
+            }
+            isPlaying = !isPlaying;
+        }
+
+        musicBtn.addEventListener('click', toggleMusic);
+
+        /* ------------------------------------------------------------------------
+           CINEMATIC DIRECTOR (Timeline Logic)
+        ------------------------------------------------------------------------ */
+        const startBtn = document.getElementById('start-btn');
+        const overlay = document.getElementById('cinematic-overlay');
+        const mainContent = document.getElementById('main-content');
+        const scrollProgress = document.getElementById('scroll-progress');
+        const heroReveal = document.getElementById('hero-reveal');
+
+        async function animateText(id, duration, pauseBeforeFadeOut) {
+            const el = document.getElementById(id);
+            el.classList.add('active');
+            await sleep(duration);
+            el.classList.remove('active');
+            el.classList.add('fade-out');
+            await sleep(1000); // Wait for fade out
+        }
+
+        async function startCinematicExperience() {
+            startBtn.style.display = 'none';
+            
+            // Start music gently
+            bgMusic.volume = 0;
+            toggleMusic(); // Starts playing
+            // Fade audio in
+            let vol = 0;
+            let fadeAudio = setInterval(() => {
+                if (vol < 0.5) {
+                    vol += 0.05;
+                    bgMusic.volume = vol;
+                } else {
+                    clearInterval(fadeAudio);
+                }
+            }, 200);
+
+            // SEQUENCE 1
+            await sleep(1000);
+            await animateText('intro-1', 4000);
+            await animateText('intro-2', 2500);
+            await animateText('intro-3', 4000);
+            
+            await sleep(1500);
+
+            // SEQUENCE 2
+            await animateText('intro-4', 3000);
+            await animateText('intro-5', 2500);
+            await animateText('intro-6', 4000); // Friend Name
+            await animateText('intro-7', 3000);
+
+            // TRANSITION TO MAIN SITE
+            overlay.style.opacity = '0';
+            await sleep(2000);
+            overlay.style.display = 'none';
+            
+            // Unlock Scrolling & Show UI
+            document.body.style.overflow = 'auto';
+            mainContent.style.opacity = '1';
+            mainContent.style.pointerEvents = 'auto';
+            scrollProgress.style.opacity = '1';
+            musicBtn.style.opacity = '1';
+            musicBtn.style.transform = 'scale(1)';
+
+            // Ensure page is at top before reveal (fix: was staying at envelope)
+            try {
+                // immediate fallback
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                // smooth scroll for UX
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {
+                // ignore if browser doesn't support options
+                window.scrollTo(0, 0);
+            }
+
+            // Grand Reveal Animation
+            await sleep(500);
+            heroReveal.classList.add('active');
+            
+            // Show scroll indicator slightly after the reveal
+            setTimeout(() => {
+                const indicator = document.getElementById('scroll-indicator');
+                if (indicator) indicator.classList.add('active');
+            }, 1500);
+            
+            // Initialize Intersection Observers for scroll animations
+            initScrollAnimations();
+        }
+
+        startBtn.addEventListener('click', startCinematicExperience);
+
+        /* ------------------------------------------------------------------------
+           SCROLL & INTERACTION LOGIC
+        ------------------------------------------------------------------------ */
+        
+        // Progress Bar & Scroll Indicator
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.body.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / docHeight) * 100;
+            scrollProgress.style.width = progress + '%';
+            
+            // Hide scroll indicator when user starts scrolling
+            const indicator = document.getElementById('scroll-indicator');
+            if (indicator) {
+                if (scrollTop > 50) {
+                    indicator.classList.add('hidden');
+                } else {
+                    indicator.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Intersection Observer for Elements
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        
+                        // Check if it's finale section to trigger ending sequence
+                        if(entry.target.id === 'finale-section') {
+                            triggerFinale();
+                            observer.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.reveal-on-scroll, #finale-section').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        /* ------------------------------------------------------------------------
+           NEW ENVELOPE & IMMERSIVE MODAL CONTROLLER
+        ------------------------------------------------------------------------ */
+        const envelope = document.getElementById('envelope');
+        const letterModal = document.getElementById('letter-modal');
+        const closeLetterBtn = document.getElementById('close-letter-btn');
+
+        envelope.addEventListener('click', function() {
+            if(this.classList.contains('is-open')) return;
+            
+            // 1. Trigger envelope opening animation
+            this.classList.add('is-open');
+            
+            // 2. Open full modal letter after a short, immersive delay
+            setTimeout(() => {
+                letterModal.classList.add('show');
+            }, 1000);
+        });
+
+        closeLetterBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // If already closing, ignore
+            if (envelope.classList.contains('closing')) return;
+
+            // 1) Hide modal immediately
+            letterModal.classList.remove('show');
+
+            // 2) Start paper slide-in (closing state). Keep is-open so flap stays open.
+            envelope.classList.add('closing');
+
+            // Durations must match CSS transitions:
+            const PAPER_MS = 1200; // .env-paper-preview transition (1.2s)
+            const FLAP_MS = 800;   // .env-flap transition (0.8s)
+
+            // 3) After paper finished sliding in, remove is-open so flap will close,
+            // then after flap animation remove the closing marker.
+            setTimeout(() => {
+                envelope.classList.remove('is-open'); // triggers flap close
+
+                // wait flap duration to fully finish before clearing 'closing'
+                setTimeout(() => {
+                    envelope.classList.remove('closing');
+                }, FLAP_MS + 20);
+            }, PAPER_MS + 20);
+        });
+
+        // Finale Sequence
+        let finaleTriggered = false;
+        async function triggerFinale() {
+            if(finaleTriggered) return;
+            finaleTriggered = true;
+
+            // Trigger Particle Burst Mode
+            particleConfig.mode = 'burst';
+
+            await sleep(1000);
+            const fin1 = document.getElementById('fin-1');
+            fin1.classList.add('active');
+            await sleep(4000);
+            fin1.classList.remove('active');
+            await sleep(1000);
+
+            const fin2 = document.getElementById('fin-2');
+            fin2.classList.add('active');
+            await sleep(3000);
+            fin2.classList.remove('active');
+            await sleep(1000);
+
+            const fin3 = document.getElementById('fin-3');
+            fin3.classList.add('active');
+            await sleep(4000);
+            fin3.classList.remove('active');
+            await sleep(1000);
+
+            const fin4 = document.getElementById('fin-4');
+            fin4.classList.add('active');
+            
+            // Create explosion of particles
+            createParticleExplosion();
+        }
+
+
+        /* ------------------------------------------------------------------------
+           ADVANCED PARTICLE ENGINE (Canvas)
+        ------------------------------------------------------------------------ */
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        const particleConfig = {
+            count: window.innerWidth < 768 ? 80 : 150, // Optimize density for mobile
+            mode: 'ambient'
+        };
+
+        function resizeCanvas() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            
-            // Khởi tạo sao tĩnh
-            stars = [];
-            for (let i = 0; i < 300; i++) {
-                stars.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    s: Math.random() * 1.2,
-                    o: Math.random()
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2 + 0.5;
+                // Soft drifting movement
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5 - 0.2; // slight upward drift
+                this.alpha = Math.random() * 0.5 + 0.1;
+                this.color = Math.random() > 0.8 ? '#FFF0A8' : '#D4AF37'; // Mostly gold, some white
+                this.life = Math.random() * 100;
+            }
+
+            update() {
+                if (particleConfig.mode === 'ambient') {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.alpha += Math.sin(this.life * 0.05) * 0.01;
+                    this.life++;
+
+                    // Wrap around edges
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+
+                } else if (particleConfig.mode === 'burst') {
+                    this.x += this.vx * 2;
+                    this.y += this.vy * 3;
+                    this.alpha -= 0.005;
+                    if(this.alpha <= 0) this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                // Glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 0; // reset
+            }
+        }
+
+        // Initialize Particles
+        for (let i = 0; i < particleConfig.count; i++) {
+            particles.push(new Particle());
+        }
+
+        // Specific Explosion Function for Finale
+        let explosionParticles = [];
+        function createParticleExplosion() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            for(let i=0; i<200; i++) {
+                explosionParticles.push({
+                    x: centerX,
+                    y: centerY,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15,
+                    size: Math.random() * 4 + 1,
+                    alpha: 1,
+                    color: Math.random() > 0.5 ? '#FFF0A8' : '#ffffff'
                 });
             }
-
-            // Khởi tạo các cụm thiên hà mờ ảo (Nebula)
-            galaxies = [
-                { x: width * 0.3, y: height * 0.4, r: width * 0.5, c: 'rgba(30, 40, 100, 0.2)' },
-                { x: width * 0.7, y: height * 0.6, r: width * 0.4, c: 'rgba(60, 20, 80, 0.15)' },
-                { x: width * 0.5, y: height * 0.5, r: width * 0.8, c: 'rgba(10, 50, 70, 0.1)' }
-            ];
         }
 
-        class Spark {
-            constructor() {
-                this.x = width / 2;
-                this.y = height / 2;
-                const angle = Math.random() * Math.PI * 2;
-                const force = Math.random() * 8 + 2;
-                this.vx = Math.cos(angle) * force;
-                this.vy = Math.sin(angle) * force;
-                this.life = 1;
-                this.decay = Math.random() * 0.01 + 0.005;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vx *= 0.98;
-                this.vy *= 0.98;
-                this.life -= this.decay;
-            }
-            draw() {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function ignite() {
-            if (active) return;
-            active = true;
-            document.getElementById('introOverlay').style.opacity = '0';
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
             
-            for (let i = 0; i < 250; i++) particles.push(new Spark());
-
-            setTimeout(() => {
-                document.getElementById('introOverlay').remove();
-                document.getElementById('mainUI').style.opacity = '1';
-                document.getElementById('mainUI').style.transform = 'translateY(0)';
-            }, 1000);
-        }
-
-        function draw() {
-            // Nền không gian sâu
-            ctx.globalAlpha = 1;
-            ctx.fillStyle = '#010208';
-            ctx.fillRect(0, 0, width, height);
-
-            // Vẽ Thiên hà chuyển động (Nebula)
-            rotation += 0.001;
-            ctx.save();
-            ctx.translate(width/2, height/2);
-            ctx.rotate(rotation);
-            ctx.translate(-width/2, -height/2);
-            
-            galaxies.forEach(g => {
-                const grad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
-                grad.addColorStop(0, g.c);
-                grad.addColorStop(1, 'transparent');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, width, height);
-            });
-            ctx.restore();
-
-            // Vẽ sao
-            ctx.fillStyle = "#fff";
-            stars.forEach(s => {
-                const twinkle = Math.sin(Date.now() * 0.001 + s.x) * 0.5 + 0.5;
-                ctx.globalAlpha = s.o * twinkle;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.s, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Vẽ Big Bang
-            particles.forEach((p, i) => {
+            // Draw regular particles
+            particles.forEach(p => {
                 p.update();
                 p.draw();
-                if (p.life <= 0) particles.splice(i, 1);
             });
 
-            requestAnimationFrame(draw);
+            // Draw explosion particles if they exist
+            for (let i = explosionParticles.length - 1; i >= 0; i--) {
+                let ep = explosionParticles[i];
+                ep.x += ep.vx;
+                ep.y += ep.vy;
+                ep.alpha -= 0.01;
+                
+                ctx.beginPath();
+                ctx.arc(ep.x, ep.y, ep.size, 0, Math.PI * 2);
+                ctx.fillStyle = ep.color;
+                ctx.globalAlpha = Math.max(0, ep.alpha);
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = ep.color;
+                ctx.fill();
+                
+                if(ep.alpha <= 0) {
+                    explosionParticles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animateParticles);
         }
 
-        window.addEventListener('resize', init);
-        init();
-        draw();
+        animateParticles();
+
     </script>
 </body>
 </html>
